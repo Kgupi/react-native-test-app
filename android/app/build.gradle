@@ -36,10 +36,13 @@ def testAppDir = file("$projectDir/../../")
 apply from: file("${testAppDir}/test-app.gradle")
 applyTestAppModule(project, "com.react.testapp")
 
+project.ext.isRntaProject = projectDir.getParent() != null &&
+    (rootDir == file(projectDir.getParent()))
+
 project.ext.react = [
     applicationId: getApplicationId(),
     enableFlipper: getFlipperVersion(rootDir),
-    enableHermes: true,
+    enableHermes : true,
 ]
 
 android {
@@ -74,18 +77,26 @@ android {
             debug.java.srcDirs += 'src/flipper/java'
         }
     }
+
+    testOptions {
+        unitTests.all {
+            if (!project.ext.isRntaProject) {
+                exclude "**/com/react/testapp/**"
+            }
+        }
+    }
 }
 
 def hermesEnginePath = findNodeModulesPath(projectDir, "hermes-engine") ?: findNodeModulesPath(projectDir, "hermesvm")
 def hermesPath = "$hermesEnginePath/android"
 
 dependencies {
-    implementation "com.google.dagger:dagger:2.27"
-    implementation "com.google.dagger:dagger-android:2.27"
-    implementation "com.google.dagger:dagger-android-support:2.27"
+    implementation "com.google.dagger:dagger:2.28.3"
+    implementation "com.google.dagger:dagger-android:2.28.3"
+    implementation "com.google.dagger:dagger-android-support:2.28.3"
 
-    kapt("com.google.dagger:dagger-compiler:2.27")
-    kapt("com.google.dagger:dagger-android-processor:2.27")
+    kapt("com.google.dagger:dagger-compiler:2.28.3")
+    kapt("com.google.dagger:dagger-android-processor:2.28.3")
 
     releaseImplementation files("$hermesPath/hermes-release.aar")
     debugImplementation files("$hermesPath/hermes-debug.aar")
@@ -97,11 +108,11 @@ dependencies {
     }
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
-    implementation "androidx.appcompat:appcompat:1.1.0"
+    implementation "androidx.appcompat:appcompat:1.2.0"
     implementation "androidx.core:core-ktx:1.3.1"
     implementation "androidx.recyclerview:recyclerview:1.1.0"
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
-    implementation "com.google.android.material:material:1.1.0"
+    implementation "com.google.android.material:material:1.2.0"
 
     implementation("com.squareup.moshi:moshi-kotlin:1.9.2")
     kapt("com.squareup.moshi:moshi-kotlin-codegen:1.9.2")
@@ -113,13 +124,13 @@ dependencies {
     if (project.ext.react.enableFlipper) {
         def flipperVersion = project.ext.react.enableFlipper
         debugImplementation("com.facebook.flipper:flipper:${flipperVersion}") {
-            exclude group:'com.facebook.fbjni'
+            exclude group: 'com.facebook.fbjni'
         }
         debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${flipperVersion}") {
-            exclude group:'com.facebook.flipper'
+            exclude group: 'com.facebook.flipper'
         }
         debugImplementation("com.facebook.flipper:flipper-network-plugin:${flipperVersion}") {
-            exclude group:'com.facebook.flipper'
+            exclude group: 'com.facebook.flipper'
         }
     }
 }
